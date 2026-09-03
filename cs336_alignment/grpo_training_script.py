@@ -6,7 +6,6 @@ from cs336_alignment.drgrpo_grader import r1_zero_reward_fn, question_only_rewar
 from vllm_utils import VLLMServer
 import os
 import json
-import random
 
 
 def get_data(file_path: str) -> list[dict[str, str]]:
@@ -52,7 +51,7 @@ def train(config: argparse.Namespace):
     validation_data = get_data(config.validation_set_file_path)
 
     step_size = config.rollout_batch_size // config.group_size
-
+    validation_iterator = 
     for step, idx in enumerate(range(0, config.n_train_examples, step_size)):
         vllm_server.sync_policy_weights(policy=policy)
 
@@ -88,7 +87,23 @@ def train(config: argparse.Namespace):
             print("should log training rollouts ")
 
         if step % config.n_log_validation:
-            print("should do validation")
+            validation_statistics = {}
+            # validation_statistics[f"pass@{config.group_size}"] = 0
+            # for idx in range(0,config.n_val_examples,config.rollout_batch_size//config.group_size):
+            #     step_data = training_data[idx : idx + step_size]
+            #     prompts = [config.prompt.format(question=x["question"]) for x in step_data]
+            #     repeated_prompts = [x for x in prompts for _ in range(config.group_size)]
+            #     repeated_ground_truths = [
+            #         x["answer"].split("####")[1].strip() for x in step_data
+            #     ]
+            #     repeated_ground_truths = [
+            #         x for x in repeated_ground_truths for _ in range(config.group_size)
+            #     ]
+            #
+            #     rollout_responses = vllm_server.generate_completions(
+            #         prompts, sampling_params=sampling_params
+            #     )
+            #     rollout_responses = [x.text for x in rollout_responses]
 
 
 if __name__ == "__main__":
