@@ -27,6 +27,9 @@ def train(config: argparse.Namespace):
     if not os.path.exists(config.validation_set_file_path):
         raise ValueError("Validation Set file path doesn't exist")
 
+    training_data = get_data(config.training_set_file_path)
+    validation_data = get_data(config.validation_set_file_path)
+
     policy, tokenizer = get_model_and_tokenizer(
         model_id_or_dir=config.model_name, device=config.model_device
     )
@@ -46,9 +49,6 @@ def train(config: argparse.Namespace):
         weight_decay=0.0,
         fused=True,
     )
-
-    training_data = get_data(config.training_set_file_path)
-    validation_data = get_data(config.validation_set_file_path)
 
     step_size = config.rollout_batch_size // config.group_size
     for step, idx in enumerate(range(0, config.n_train_examples, step_size)):
