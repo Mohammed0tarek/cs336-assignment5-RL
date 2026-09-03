@@ -57,15 +57,17 @@ def get_response_log_probs(
     log_probs = torch.log_softmax(logits, dim=-1)
 
     output = {
-        "log_probs": torch.gather(log_probs, dim=-1, index=labels.unsqueeze(-1))
-        .squeeze(-1)
-        .to(device=model.device)
+        "log_probs": torch.gather(
+            log_probs, dim=-1, index=labels.unsqueeze(-1)
+        ).squeeze(-1)
     }
     if return_token_entropy:
         probs = torch.softmax(logits, dim=-1)
-        output["token_entropy"] = -torch.sum(probs * log_probs, dim=-1).to(
-            device=model.device
-        )
+        with torch.no_grad():
+            output["token_entropy"] = -torch.sum(probs * log_probs, dim=-1)
+        del probs
+    del log_probs
+
     return output
 
 
