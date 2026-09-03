@@ -33,6 +33,7 @@ def train(config: argparse.Namespace):
     policy, tokenizer = get_model_and_tokenizer(
         model_id_or_dir=config.model_name, device=config.model_device
     )
+    policy.gradient_checkpointing_enable()
     vllm_server = VLLMServer(
         model_id=config.model_name, gpu=config.vllm_device, gpu_memory_utilization=0.6
     )

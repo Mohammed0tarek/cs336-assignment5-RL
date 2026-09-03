@@ -53,21 +53,18 @@ def get_response_log_probs(
     return_token_entropy: bool = False,
 ) -> dict[str, torch.Tensor]:
     logits = model(input_ids).logits
+    log_probs = -torch.nn.functional.cross_entropy(
+        logits.reshape(-1, logits.size(-1)), labels.reshape(-1), reduction="none"
+    )
+    log_probs = log_probs.reshape(labels.shape)
 
-    log_probs = torch.log_softmax(logits, dim=-1)
-
-    output = {
-        "log_probs": torch.gather(
-            log_probs, dim=-1, index=labels.unsqueeze(-1)
-        ).squeeze(-1)
-    }
+    output = {"log_probs": log_probs}
     if return_token_entropy:
         with torch.no_grad():
-            probs = torch.softmax(logits, dim=-1)
+            lp = torch.log_softmax(logits, dim=-1)
 
-            output["token_entropy"] = -torch.sum(probs * log_probs, dim=-1)
-            del probs
-    del log_probs
+            output["token_entropy"] = -(lp.exp() * lp).sum(dim=-1)
+            del lp
 
     return output
 
