@@ -49,7 +49,7 @@ def train(config: argparse.Namespace):
         weight_decay=0.0,
         fused=True,
     )
-
+    vllm_server.init_weight_sync(f"cuda:{config.model_device}")
     step_size = config.rollout_batch_size // config.group_size
     for step, idx in enumerate(range(0, config.n_train_examples, step_size)):
         vllm_server.sync_policy_weights(policy=policy)
