@@ -47,7 +47,7 @@ def train(config: argparse.Namespace):
         lr=config.learning_rate,
         betas=(0.9, 0.95),
         weight_decay=0.0,
-        fused=True,
+        fused=False,
     )
     vllm_server.init_weight_sync(f"cuda:{config.model_device}")
     step_size = config.rollout_batch_size // config.group_size
