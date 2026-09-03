@@ -9,6 +9,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+notebooks/
 # C extensions
 *.so
 
@@ -166,3 +167,6 @@ cython_debug/
 #.idea/
 
 *.DS_Store
+
+# Generated eval outputs
+cs336_alignment/gsm8k_eval_result.json

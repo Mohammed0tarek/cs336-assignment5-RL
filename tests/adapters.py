@@ -6,8 +6,8 @@ from typing import Any, Callable, Literal
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset
-from transformers import PreTrainedTokenizerBase
-
+from transformers import PreTrainedModel, PreTrainedTokenizerBase
+from transformers.image_utils import max_across_indices
 
 
 def run_tokenize_prompt_and_output(
@@ -46,7 +46,9 @@ def run_tokenize_prompt_and_output(
                 with labels, with value 1 where the corresponding label token
                 is part of the response and 0 otherwise.
     """
-    raise NotImplementedError
+    from cs336_alignment.utils import tokenize_prompt_and_output
+
+    return tokenize_prompt_and_output(prompt_strs, output_strs, tokenizer)
 
 
 def run_get_response_log_probs(
@@ -82,7 +84,9 @@ def run_get_response_log_probs(
                 entropy for each position (present only if
                 return_token_entropy=True).
     """
-    raise NotImplementedError
+    from cs336_alignment.utils import get_response_log_probs
+
+    return get_response_log_probs(model, input_ids, labels, return_token_entropy)
 
 
 def run_compute_rollout_rewards(
@@ -114,7 +118,9 @@ def run_compute_rollout_rewards(
                 Reward statistics to log. At minimum, include the mean total
                 and format rewards over the rollout batch.
     """
-    raise NotImplementedError
+    from cs336_alignment.utils import compute_rollout_rewards
+
+    return compute_rollout_rewards(reward_fn, rollout_responses, repeated_ground_truths)
 
 
 def run_compute_group_normalized_rewards(
@@ -153,7 +159,15 @@ def run_compute_group_normalized_rewards(
                 your choice of other statistics to log (e.g. mean, std, max/min
                 of rewards).
     """
-    raise NotImplementedError
+    from cs336_alignment.grpo import compute_group_normalized_rewards
+
+    return compute_group_normalized_rewards(
+        raw_rewards,
+        group_size,
+        baseline,
+        advantage_eps,
+        advantage_normalizer,
+    )
 
 
 def run_compute_policy_gradient_loss(
@@ -200,7 +214,16 @@ def run_compute_policy_gradient_loss(
                 Statistics from the underlying loss call, such as
                 clip-fraction components.
     """
-    raise NotImplementedError
+    from cs336_alignment.grpo import compute_policy_gradient_loss
+
+    return compute_policy_gradient_loss(
+        raw_rewards_or_advantages,
+        policy_log_probs,
+        importance_reweighting_method,
+        old_log_probs,
+        cliprange,
+        response_mask,
+    )
 
 
 def run_aggregate_loss_across_microbatch(
@@ -232,11 +255,15 @@ def run_aggregate_loss_across_microbatch(
             A scalar containing the average loss. Make sure you can later call
             backward on this loss.
     """
-    raise NotImplementedError
+    from cs336_alignment.grpo import aggregate_loss_across_microbatch
+
+    return aggregate_loss_across_microbatch(
+        per_token_policy_gradient_loss, mask, loss_normalization
+    )
 
 
 def run_grpo_train_step(
-    model: torch.nn.Module,
+    model: PreTrainedModel,
     tokenizer: PreTrainedTokenizerBase,
     optimizer: torch.optim.Optimizer,
     gradient_accumulation_steps: int,
@@ -288,11 +315,13 @@ def run_grpo_train_step(
             Number of responses per question (group).
         baseline: Literal["mean", "none"]
             If mean, subtract the per-group mean reward; if none, do nothing.
+
         advantage_eps: float
             Small constant to avoid division by zero in normalization.
         advantage_normalizer: Literal["std", "none", "mean"]
             If std, divide by the per-group standard deviation; if none, do
             nothing; if mean, divide by the per-group mean reward.
+
         importance_reweighting_method: Literal["none", "noclip", "grpo", "gspo"]
             "none": no importance reweighting; "noclip": apply importance
             reweighting without clipping; "grpo": do PPO/GRPO-style token-level
@@ -321,7 +350,23 @@ def run_grpo_train_step(
                 Dict with metadata from the underlying loss call, gradient norm
                 before clipping, and any other statistics you might want to log.
     """
-    raise NotImplementedError
+    from cs336_alignment.grpo import grpo_train_step
+
+    return grpo_train_step(
+        model=model,
+        tokenizer=tokenizer,
+        optimizer=optimizer,
+        gradient_accumulation_steps=gradient_accumulation_steps,
+        max_grad_norm=max_grad_norm,
+        reward_fn=reward_fn,
+        rollout_responses=rollout_responses,
+        repeated_prompts=repeated_prompts,
+        repeated_ground_truths=repeated_ground_truths,
+        group_size=group_size,
+        baseline=baseline,
+        advantage_normalizer=advantage_normalizer,
+        advantage_eps=advantage_eps,
+    )
 
 
 """
