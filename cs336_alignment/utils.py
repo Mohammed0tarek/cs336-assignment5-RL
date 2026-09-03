@@ -8,6 +8,7 @@ def tokenize_prompt_and_output(
     prompt_strs: list[str],
     output_strs: list[str],
     tokenizer: PreTrainedTokenizerBase,
+    device: torch.device,
 ) -> dict[str, torch.Tensor]:
     assert len(prompt_strs) == len(output_strs), (
         "Prompts and outputs have to be of the same length"
@@ -39,9 +40,9 @@ def tokenize_prompt_and_output(
     mask = mask[:, 1:].long()
 
     return {
-        "input_ids": input_ids,
-        "labels": labels,
-        "response_mask": mask,
+        "input_ids": input_ids.to(device=device),
+        "labels": labels.to(device=device),
+        "response_mask": mask.to(device=device),
     }
 
 

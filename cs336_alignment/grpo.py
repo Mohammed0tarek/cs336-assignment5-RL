@@ -107,9 +107,7 @@ def grpo_train_step(
 
     total_loss = torch.zeros(1).to(device=model.device)
     tokenized = tokenize_prompt_and_output(
-        repeated_prompts,
-        rollout_responses,
-        tokenizer,
+        repeated_prompts, rollout_responses, tokenizer, device=model.device
     )
     rewards, reward_statistics = compute_rollout_rewards(
         reward_fn, rollout_responses, repeated_ground_truths
