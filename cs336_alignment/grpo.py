@@ -129,7 +129,7 @@ def grpo_train_step(
         response_mask = tokenized["response_mask"][i : i + microbatch_size]
 
         policy_log_probs = get_response_log_probs(
-            model, input_ids, labels, return_token_entropy=True
+            model, input_ids, labels, return_token_entropy=False
         )
 
         per_token_policy_gradient_loss, _ = compute_policy_gradient_loss(
@@ -153,16 +153,16 @@ def grpo_train_step(
         aggregated_policy_gradient_loss.backward()
 
         # Calculate statistics
-        if statistics.get("token_entropy", None) is None:
-            statistics["token_entropy"] = policy_log_probs["token_entropy"].detach()
-        else:
-            statistics["token_entropy"] = torch.cat(
-                (
-                    statistics["token_entropy"],
-                    policy_log_probs["token_entropy"].detach(),
-                ),
-                dim=0,
-            )
+        # if statistics.get("token_entropy", None) is None:
+        #     statistics["token_entropy"] = policy_log_probs["token_entropy"].detach()
+        # else:
+        #     statistics["token_entropy"] = torch.cat(
+        #         (
+        #             statistics["token_entropy"],
+        #             policy_log_probs["token_entropy"].detach(),
+        #         ),
+        #         dim=0,
+        #     )
 
     if max_grad_norm is not None:
         statistics["grad_norm"] = torch.nn.utils.clip_grad_norm_(
