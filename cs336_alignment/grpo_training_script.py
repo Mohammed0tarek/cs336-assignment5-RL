@@ -33,7 +33,9 @@ def train(config: argparse.Namespace):
     policy, tokenizer = get_model_and_tokenizer(
         model_id_or_dir=config.model_name, device=config.model_device
     )
-    vllm_server = VLLMServer(model_id=config.model_name, gpu=config.vllm_device)
+    vllm_server = VLLMServer(
+        model_id=config.model_name, gpu=config.vllm_device, gpu_memory_utilization=0.6
+    )
     vllm_server.start()
     sampling_params = {
         "include_stop_str_in_output": True,
