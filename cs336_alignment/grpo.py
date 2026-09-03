@@ -54,6 +54,7 @@ def compute_policy_gradient_loss(
 ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
     if len(raw_rewards_or_advantages.shape) < 2:
         raw_rewards_or_advantages = raw_rewards_or_advantages.unsqueeze(-1)
+
     reward_log_probs = raw_rewards_or_advantages * policy_log_probs
 
     return -reward_log_probs, {"aha": torch.tensor(1)}
@@ -120,6 +121,7 @@ def grpo_train_step(
         advantage_eps=advantage_eps,
         advantage_normalizer=advantage_normalizer,
     )
+    group_normalized_rewards = group_normalized_rewards.to(device=model.device)
 
     for i in range(0, len(repeated_prompts), microbatch_size):
         input_ids = tokenized["input_ids"][i : i + microbatch_size]
