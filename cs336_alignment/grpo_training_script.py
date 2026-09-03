@@ -9,9 +9,9 @@ import json
 
 
 def get_data(file_path: str) -> list[dict[str, str]]:
-    _, ext = file_path.split(".")
+    ext = file_path.split(".")
     data: list[dict[str, str]] = []
-    if ext == "jsonl":
+    if ext[-1] == "jsonl":
         with open(file_path, "r") as f:
             for line in f:
                 data.append(json.loads(line))
@@ -51,7 +51,6 @@ def train(config: argparse.Namespace):
     validation_data = get_data(config.validation_set_file_path)
 
     step_size = config.rollout_batch_size // config.group_size
-    validation_iterator = 
     for step, idx in enumerate(range(0, config.n_train_examples, step_size)):
         vllm_server.sync_policy_weights(policy=policy)
 
