@@ -61,10 +61,9 @@ def get_response_log_probs(
     output = {"log_probs": log_probs}
     if return_token_entropy:
         with torch.no_grad():
-            lp = torch.log_softmax(logits, dim=-1)
-
-            output["token_entropy"] = -(lp.exp() * lp).sum(dim=-1)
-            del lp
+            output["token_entropy"] = torch.logsumexp(logits, -1) - (
+                torch.softmax(logits, -1) * logits
+            ).sum(-1)
 
     return output
 
