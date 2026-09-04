@@ -87,9 +87,10 @@ def train(config: argparse.Namespace):
             group_size=config.group_size,
         )
         print("Loss at  step: ", loss.detach().data)
+        print("stats:", statistics)
+
         if step % config.n_log_training:
             print("should log training rollouts ")
-
         if step % config.n_log_validation:
             validation_statistics = {}
             # validation_statistics[f"pass@{config.group_size}"] = 0
