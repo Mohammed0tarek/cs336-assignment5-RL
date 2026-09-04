@@ -4,6 +4,7 @@ models/
 nav
 tags
 
+cs336_alignment/*.json
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

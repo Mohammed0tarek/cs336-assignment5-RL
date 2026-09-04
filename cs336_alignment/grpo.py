@@ -169,7 +169,7 @@ def grpo_train_step(
             model.parameters(), max_grad_norm
         )
 
-    statistics["reward_stats"] = reward_statistics.copy()
+    statistics.update(reward_statistics.copy())
     optimizer.step()
     optimizer.zero_grad(set_to_none=True)
     return total_loss, statistics
