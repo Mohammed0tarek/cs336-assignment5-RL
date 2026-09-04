@@ -129,7 +129,7 @@ def grpo_train_step(
         response_mask = tokenized["response_mask"][i : i + microbatch_size]
 
         policy_log_probs = get_response_log_probs(
-            model, input_ids, labels, return_token_entropy=False
+            model, input_ids, labels, return_token_entropy=True
         )
 
         per_token_policy_gradient_loss, _ = compute_policy_gradient_loss(
