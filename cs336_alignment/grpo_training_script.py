@@ -6,6 +6,7 @@ from cs336_alignment.drgrpo_grader import r1_zero_reward_fn, question_only_rewar
 from vllm_utils import VLLMServer
 import os
 import json
+import random
 
 
 def get_data(file_path: str) -> list[dict[str, str]]:
@@ -88,6 +89,14 @@ def train(config: argparse.Namespace):
         )
         print("Loss at  step: ", loss.detach().data)
         print("stats:", statistics)
+
+        print("random_rollouts")
+
+        for i in range(0, 4):
+            idx = random.randint(0, len(rollout_responses))
+            print("--- Prompt: ", repeated_prompts[idx])
+            print("--- ground truth: ", repeated_ground_truths[idx])
+            print("--- rollout response", rollout_responses[idx])
 
         if step % config.n_log_training:
             print("should log training rollouts ")
