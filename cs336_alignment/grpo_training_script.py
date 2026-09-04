@@ -47,6 +47,7 @@ def train(config: argparse.Namespace):
         "max_tokens": config.sampling_max_tokens,
         "n": config.group_size,
         "seed": 1,
+        "stop": "</answer>",
     }
     optimizer: Optimizer = AdamW(
         policy.parameters(),
