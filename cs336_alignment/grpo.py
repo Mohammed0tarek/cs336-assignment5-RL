@@ -153,16 +153,16 @@ def grpo_train_step(
         aggregated_policy_gradient_loss.backward()
 
         # Calculate statistics
-        # if statistics.get("token_entropy", None) is None:
-        #     statistics["token_entropy"] = policy_log_probs["token_entropy"].detach()
-        # else:
-        #     statistics["token_entropy"] = torch.cat(
-        #         (
-        #             statistics["token_entropy"],
-        #             policy_log_probs["token_entropy"].detach(),
-        #         ),
-        #         dim=0,
-        #     )
+        if statistics.get("token_entropy", None) is None:
+            statistics["token_entropy"] = policy_log_probs["token_entropy"].detach()
+        else:
+            statistics["token_entropy"] = torch.cat(
+                (
+                    statistics["token_entropy"],
+                    policy_log_probs["token_entropy"].detach(),
+                ),
+                dim=0,
+            )
 
     if max_grad_norm is not None:
         statistics["grad_norm"] = torch.nn.utils.clip_grad_norm_(
