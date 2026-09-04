@@ -206,7 +206,7 @@ def train(config: argparse.Namespace):
                             .item()
                         )
                         mlflow.log_metric(
-                            key=f"validation_pass@{k}", value=pass_at_k, step=step
+                            key=f"validation_pass_at_{k}", value=pass_at_k, step=step
                         )
 
                     log_bound = min(
