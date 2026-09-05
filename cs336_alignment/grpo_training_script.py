@@ -26,22 +26,31 @@ def get_data(file_path: str) -> list[dict[str, str]]:
 
 
 def train(config: argparse.Namespace):
-    # Validation
+    # Validate file pahts
     if not os.path.exists(config.training_set_file_path):
         raise ValueError("Training Set file path doesn't exist")
     if not os.path.exists(config.validation_set_file_path):
         raise ValueError("Validation Set file path doesn't exist")
+    # set random seeds for "hpefully reproducible" experiments
+    random.seed(config.seed)
+    torch.manual_seed(config.seed)
 
+    # Start the data
     training_data = get_data(config.training_set_file_path)
     validation_data = get_data(config.validation_set_file_path)
-
+    validation_data = validation_data[
+        0 : min(config.n_val_examples, len(validation_data))
+    ]
     # logging setup
     with mlflow.start_run():
         mlflow.log_params(config.__dict__)
         mlflow.enable_system_metrics_logging()
+
+        # Initialize model, vllm server, sampling parameters, and optimzer.
         policy, tokenizer = get_model_and_tokenizer(
             model_id_or_dir=config.model_name, device=config.model_device
         )
+        # Set training mode
         policy = policy.train()
 
         policy.gradient_checkpointing_enable()
@@ -49,6 +58,7 @@ def train(config: argparse.Namespace):
             model_id=config.model_name,
             gpu=config.vllm_device,
             gpu_memory_utilization=0.6,
+            seed=config.seed,
         )
         vllm_server.start()
         sampling_params = {
@@ -56,7 +66,6 @@ def train(config: argparse.Namespace):
             "temperature": config.sampling_temperature,
             "max_tokens": config.sampling_max_tokens,
             "n": config.group_size,
-            "seed": 1,
             "stop": "</answer>",
         }
         optimizer: Optimizer = AdamW(
@@ -68,7 +77,10 @@ def train(config: argparse.Namespace):
         )
         vllm_server.init_weight_sync(f"cuda:{config.model_device}")
         step_size = config.rollout_batch_size // config.group_size
+        random.shuffle(training_data)
         for step, idx in enumerate(range(0, config.n_train_examples, step_size)):
+            if config.training_steps is not None and step > config.training_steps:
+                break
             vllm_server.sync_policy_weights(policy=policy)
 
             step_data = training_data[idx : min(idx + step_size, len(training_data))]
@@ -271,5 +283,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_log_validation", type=int, default=10)
     parser.add_argument("--n_rollouts_to_log", type=int, default=256)
     parser.add_argument("--n_check_point", type=int, default=10)
+    parser.add_argument("--training_steps", type=int, default=None)
+    parser.add_argument("--seed", type=int, default=22)
     args = parser.parse_args()
     train(config=args)
